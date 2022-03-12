@@ -3,6 +3,14 @@
 let bookmark_list = new Array();
 
 // document.addEventListener('DOMContentLoaded', dumpBookmarks);
+document.addEventListener('DOMContentLoaded', getTitle);
+
+
+function getTitle() {
+    const bookmarkTreeNodes = chrome.bookmarks.getTree();
+    // console.log(bookmarkTreeNodes); -> Promise result Array
+}
+
 
 function dumpBookmarks(query) {
     const bookmarkTreeNodes = chrome.bookmarks.getTree(function (bookmarkTreeNodes) {
@@ -19,7 +27,7 @@ function dumpTreeNodes(bookmarkNodes, query) {
 }
 
 function dumpNode(bookmarkNode, query) {
-    console.log(bookmarkNode)
+    // console.log(bookmarkNode)
     if (bookmarkNode.children && bookmarkNode.children.length > 0) {
         dumpTreeNodes(bookmarkNode.children, query);
     } else {
@@ -58,4 +66,4 @@ function handleClick() {
 }
 
 // chrome.browserAction.onClicked.addListener(handleClick);
-document.addEventListener('DOMContentLoaded', handleClick);
+// document.addEventListener('DOMContentLoaded', handleClick);
