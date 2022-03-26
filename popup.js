@@ -1,8 +1,6 @@
 'use strict';
 
 
-const container = document.querySelector('#container');
-
 function urlParse(urlstr) {
     const urlBase = new URL(urlstr);
     const origin = urlBase.origin;
@@ -11,36 +9,7 @@ function urlParse(urlstr) {
     const url = [origin, x, y].join('/');
     return url;
 }
-// const faviconUrl = (url) => `https://www.google.com/s2/favicons?domain=${new URL(url).hostname}`;
 const faviconUrl = (url) => `https://www.google.com/s2/favicons?domain=${urlParse(url)}`;
-
-
-
-// const convertToSearchItemsFromBookmarks = (bookmarkTreeNodes) => {
-//     const result = [];
-//     const getTitleAndUrl = (bookmarkTreeNodes, folderNames) => {
-//         bookmarkTreeNodes.forEach((node) => {
-//             if (node.type !== "bookmark" && node.children) {
-//                 const _folderName = node.parentId === "0" ? "" : node.title;
-//                 getTitleAndUrl(node.children, [...folderNames, _folderName]);
-//                 return;
-//             }
-
-//             if (!node.url) return;
-
-//             // Exclude top level folder name
-//             const folderName = node.parentId === "1" ? "" : folderNames.filter((name) => name).join("/");
-//             result.push({
-//                 url: node.url,
-//                 title: node.title || node.url,
-//                 faviconUrl: faviconUrl(node.url),
-//                 folderName,
-//             });
-//         });
-//     };
-//     getTitleAndUrl(bookmarkTreeNodes, []);
-//     return result;
-// };
 
 
 
@@ -57,7 +26,7 @@ function getBookmarksList(bookmarkTreeNodes) {
     rawbookmarks.sort((x, y) => (x.dateAdded > y.dateAdded) ? -1 : 1);
 
     const bookmarks = rawbookmarks.map(node => {
-        console.log(faviconUrl(node.url));
+        // console.log(faviconUrl(node.url));
         return {
             favicon: faviconUrl(node.url),
             title: node.title || node.url,
@@ -72,10 +41,13 @@ function getBookmarksList(bookmarkTreeNodes) {
 
 document.addEventListener('DOMContentLoaded', async () => {
     const all_bookmark_tree = await chrome.bookmarks.getTree();
-    console.log(all_bookmark_tree);
+    // console.log(all_bookmark_tree);
     // const list = convertToSearchItemsFromBookmarks(all_bookmark_tree);
-    const list = getBookmarksList(all_bookmark_tree);
-    container.innerHTML = setBookmarksTableHTML(list);
+    const bookmarksList = getBookmarksList(all_bookmark_tree);
+
+    const container = createElementAddClass('div', 'container');
+    container.innerHTML = setBookmarksTableHTML(bookmarksList);
+    document.body.appendChild(container);
     console.log('size');
     console.log('screen.width', screen.width);
     console.log('window.innerWidth', window.innerWidth);
@@ -107,7 +79,13 @@ function setBookmarksTableHTML(bookmarks) {
 }
 
 
-
+function createElementAddClass(tag, ...names) {
+    const element_obj = document.createElement(tag);
+    for (const name of names) {
+        element_obj.classList.add(name);
+    }
+    return element_obj;
+}
 
 
 
