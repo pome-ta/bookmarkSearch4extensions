@@ -36,9 +36,8 @@ function getBookmarksList(bookmarkTreeNodes) {
     return bookmarks;
 }
 
-document.addEventListener('DOMContentLoaded')
+// document.addEventListener('DOMContentLoaded')
 
-/*
 document.addEventListener('DOMContentLoaded', async () => {
     const all_bookmark_tree = await chrome.bookmarks.getTree();
     // console.log(all_bookmark_tree);
@@ -56,7 +55,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     console.log('document.body.clientWidth', document.body.clientWidth);
 
 });
-*/
 
 
 
