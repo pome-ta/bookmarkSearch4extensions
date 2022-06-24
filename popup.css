@@ -1,11 +1,9 @@
-body {
-  font-family: "Helvetica Neue",
-    Arial,
-    "Hiragino Kaku Gothic ProN",
-    "Hiragino Sans",
-    Meiryo,
-    sans-serif;
-  font-feature-settings: "palt" 1;
+@charset "utf-8";
+
+
+:root {
+  --outViewWidth: 100%;
+  --inViewWidth: 100%;
 }
 
 
@@ -16,3 +14,81 @@ body {
   box-sizing: border-box;
 }
 
+
+body {
+  font-family: "Helvetica Neue",
+    Arial,
+    "Hiragino Kaku Gothic ProN",
+    "Hiragino Sans",
+    Meiryo,
+    sans-serif;
+  font-feature-settings: "palt" 1;
+  margin: 0;
+  background-color: #f4f5f7;
+  max-width: var(--outViewWidth);
+}
+
+#container {
+  max-width: var(--inViewWidth);
+  min-width: var(--inViewWidth);
+}
+
+
+input {
+  width: 100%;
+  height: 2rem;
+}
+
+input:focus {
+  background-color: rgba(250, 250, 250, .3);
+}
+
+a {
+  width: 100%;
+  display: block;
+  text-decoration: none;
+}
+
+table {
+  width: 100%;
+}
+
+tbody {
+  width: 100%;
+}
+
+tr {
+  width: 100%;
+}
+
+td {
+  border: none;
+  padding: 0;
+  height: 2rem;
+}
+
+td p {
+  width: auto;
+  margin: 0;
+}
+
+
+.title {
+  font-size: 1.0rem;
+  color: #232323;
+  margin: 0.4rem 0 0 0;
+}
+
+.url {
+  font-size: 0.6rem;
+  color: #8a8a8a;
+  margin: 0;
+}
+
+img {
+  margin: 0.8rem;
+}
+
+tr:hover {
+  background-color: rgba(255, 255, 255, .6);
+}

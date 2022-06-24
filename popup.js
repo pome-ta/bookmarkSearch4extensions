@@ -12,8 +12,6 @@ function urlParse(urlstr) {
 const faviconUrl = (url) => `https://www.google.com/s2/favicons?domain=${urlParse(url)}`;
 
 
-
-
 function getBookmarksList(bookmarkTreeNodes) {
     const rawbookmarks = new Array();
     const setBookmarkNodes = (treeNodes => {
@@ -23,10 +21,9 @@ function getBookmarksList(bookmarkTreeNodes) {
     });
 
     setBookmarkNodes(bookmarkTreeNodes);
+    // todo: 登録日ソート
     rawbookmarks.sort((x, y) => (x.dateAdded > y.dateAdded) ? -1 : 1);
-
     const bookmarks = rawbookmarks.map(node => {
-        // console.log(faviconUrl(node.url));
         return {
             favicon: faviconUrl(node.url),
             title: node.title || node.url,
@@ -36,46 +33,31 @@ function getBookmarksList(bookmarkTreeNodes) {
     return bookmarks;
 }
 
-// document.addEventListener('DOMContentLoaded')
-
-document.addEventListener('DOMContentLoaded', async () => {
-    const all_bookmark_tree = await chrome.bookmarks.getTree();
-    // console.log(all_bookmark_tree);
-    // const list = convertToSearchItemsFromBookmarks(all_bookmark_tree);
-    const bookmarksList = getBookmarksList(all_bookmark_tree);
-
-    const container = createElementAddClass('div', 'container');
-    container.innerHTML = setBookmarksTableHTML(bookmarksList);
-    document.body.appendChild(container);
-    console.log('size');
-    console.log('screen.width', screen.width);
-    console.log('window.innerWidth', window.innerWidth);
-    console.log('visualViewport.width', visualViewport.width);
-    console.log('document.documentElement.clientWidth', document.documentElement.clientWidth);
-    console.log('document.body.clientWidth', document.body.clientWidth);
-
-});
-
-
 
 
 
 
 function setBookmarksTableHTML(bookmarks) {
-    // let insertHtml = '<input type="search" class="light-table-filter" data-table="order-table" placeholder="ブックマーク検索" /><table class="order-table"><thead>';
-    let insertHtml = '<input type="search" class="light-table-filter" data-table="order-table" placeholder="ブックマーク検索"  autofocus /><table class="order-table">';
-    // insertHtml += '<tr><th>favicon</th><th>title</th><th>URL</th></tr></thead><tbody>';
-    insertHtml += '<tbody>';
+    let insertHtml = '';
+    const inputSearch = '<input type="search" class="light-table-filter" data-table="order-table" placeholder="ブックマーク検索"  autofocus /><table class="order-table">';
+    const tableHead = '<table class="order-table"><tbody>';
+    insertHtml += inputSearch + tableHead;
     for (const bm of bookmarks) {
         insertHtml += `
         <tr>
-            <td><img src="${bm.favicon}"></td>
-            <td><div><a href="${bm.url}">${bm.title}</a>${bm.url}</div></td>
+        <th class="tdImg"><img src="${bm.favicon}" loading="lazy"></th>
+        <td>
+            <a href="${bm.url}">
+                <div>
+                    <p class="rows title">${bm.title}</p>
+                    <p class="rows url">${bm.url}</p>
+                </div>
+            </a>
+        </td>
         </tr>`;
     }
     insertHtml += '</tbody></table>';
     return insertHtml;
-
 }
 
 
@@ -109,17 +91,31 @@ const LightTableFilter = (Arr => {
     }
     return {
         init: function () {
-            let inputs = document.getElementsByClassName('light-table-filter');
-            Arr.forEach.call(inputs, input => {
-                input.oninput = _onInputEvent;
-            });
+            document.querySelector('.light-table-filter').oninput = _onInputEvent;
         }
     };
-})(Array.prototype);
+})(new Array());
 
 
-document.addEventListener('readystatechange', function () {
-    if (document.readyState === 'complete') {
-        LightTableFilter.init();
-    }
-});
+async function setupBookmarkListConvTabelElement() {
+    const all_bookmark_tree = await chrome.bookmarks.getTree();
+    const bookmarkList = getBookmarksList(all_bookmark_tree);
+    container.innerHTML = setBookmarksTableHTML(bookmarkList);
+}
+
+let outViewWidth, inViewWidth, tdWidth;
+const container = document.querySelector('#container');
+
+
+const setupPopupSize = () => {
+    outViewWidth = window.innerWidth;
+    inViewWidth = window.visualViewport.width;
+    document.documentElement.style.setProperty('--outViewWidth', `${outViewWidth}px`);
+    document.documentElement.style.setProperty('--inViewWidth', `${inViewWidth}px`)
+}
+
+
+document.addEventListener('DOMContentLoaded', setupBookmarkListConvTabelElement);
+
+document.addEventListener('readystatechange', () => (document.readyState === 'complete') ? LightTableFilter.init() : null);
+window.addEventListener('resize', setupPopupSize);
