@@ -1,7 +1,7 @@
 {
-  "name": "test_MyBookMarkSearch",
+  "name": "MyBookMarkSearch",
   "description": "BookMark のSearch をいい感じにするやーつ",
-  "version": "0.0.0",
+  "version": "0.0.1",
   "manifest_version": 3,
   "permissions": [
     "bookmarks"
@@ -16,5 +16,8 @@
       "suggested_key": "Ctrl+Shift+Space",
       "description": "Start up"
     }
+  },
+  "icons": {
+    "16": "icon.png"
   }
 }
