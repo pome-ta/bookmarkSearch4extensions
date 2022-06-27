@@ -1,28 +1,27 @@
 'use strict';
 
-
+// --- favicon util
 function urlParse(urlstr) {
     const urlBase = new URL(urlstr);
     const origin = urlBase.origin;
-    // todo: google 関係のfavicon 取得のため
-    const [, x, y, ..._] = urlBase.pathname.split('/');
-    const url = [origin, x, y].join('/');
-    return url;
+    const [, x, y, ..._] = urlBase.pathname.split('/');     // todo: Google 関係のfavicon 取得のため、詳細情報を切り捨て
+    return [origin, x, y].join('/');
 }
 const faviconUrl = (url) => `https://www.google.com/s2/favicons?domain=${urlParse(url)}`;
 
 
+// --- Chrome Extensions func
 function getBookmarksList(bookmarkTreeNodes) {
     const rawbookmarks = new Array();
     const setBookmarkNodes = (treeNodes => {
         treeNodes.forEach(nodes => {
-            (nodes.children) ? setBookmarkNodes(nodes.children) : rawbookmarks.push(nodes);
+            (nodes.children)
+                ? setBookmarkNodes(nodes.children)
+                : rawbookmarks.push(nodes);
         });
     });
-
     setBookmarkNodes(bookmarkTreeNodes);
-    // todo: 登録日ソート
-    rawbookmarks.sort((x, y) => (x.dateAdded > y.dateAdded) ? -1 : 1);
+    rawbookmarks.sort((x, y) => (x.dateAdded > y.dateAdded) ? -1 : 1);      // todo: 登録日ソート
     const bookmarks = rawbookmarks.map(node => {
         return {
             favicon: faviconUrl(node.url),
@@ -35,11 +34,36 @@ function getBookmarksList(bookmarkTreeNodes) {
 
 
 
+// --- search func
+// http://kachibito.net/snippets/light-javascript-table-filter
+const LightTableFilter = (array => {
+    let _input;
+    function _onInputEvent(e) {
+        _input = e.target;
+        let tables = document.getElementsByClassName(_input.getAttribute('data-table'));
+        array.forEach.call(tables, table => {
+            array.forEach.call(table.tBodies, tbody => {
+                array.forEach.call(tbody.rows, _filter);
+            });
+        });
+    }
+    function _filter(row) {
+        let text = row.textContent.toLowerCase();
+        let val = _input.value.toLowerCase();
+        row.style.display = text.indexOf(val) === -1 ? 'none' : 'table-row';
+    }
+    return {
+        init: function () {
+            document.querySelector('.light-table-filter').oninput = _onInputEvent;
+        }
+    }
+})(new Array());
 
 
+// --- DOM
 function setBookmarksTableHTML(bookmarks) {
     let insertHtml = '';
-    const inputSearch = '<input type="search" class="light-table-filter" data-table="order-table" placeholder="ブックマーク検索"  autofocus /><table class="order-table">';
+    const inputSearch = '<input type="search" class="light-table-filter" data-table="order-table" placeholder="🤓 ブックマーク検索"  autofocus />';
     const tableHead = '<table class="order-table"><tbody>';
     insertHtml += inputSearch + tableHead;
     for (const bm of bookmarks) {
@@ -60,62 +84,15 @@ function setBookmarksTableHTML(bookmarks) {
     return insertHtml;
 }
 
-
-function createElementAddClass(tag, ...names) {
-    const element_obj = document.createElement(tag);
-    for (const name of names) {
-        element_obj.classList.add(name);
-    }
-    return element_obj;
-}
-
-
-
-
-// http://kachibito.net/snippets/light-javascript-table-filter
-const LightTableFilter = (Arr => {
-    let _input;
-    function _onInputEvent(e) {
-        _input = e.target;
-        let tables = document.getElementsByClassName(_input.getAttribute('data-table'));
-        Arr.forEach.call(tables, table => {
-            Arr.forEach.call(table.tBodies, tbody => {
-                Arr.forEach.call(tbody.rows, _filter);
-            });
-        });
-    }
-    function _filter(row) {
-        let text = row.textContent.toLowerCase();
-        let val = _input.value.toLowerCase();
-        row.style.display = text.indexOf(val) === -1 ? 'none' : 'table-row';
-    }
-    return {
-        init: function () {
-            document.querySelector('.light-table-filter').oninput = _onInputEvent;
-        }
-    };
-})(new Array());
-
-
+const container = document.querySelector('#container');
 async function setupBookmarkListConvTabelElement() {
-    const all_bookmark_tree = await chrome.bookmarks.getTree();
-    const bookmarkList = getBookmarksList(all_bookmark_tree);
+    const allBookmarkTree = await chrome.bookmarks.getTree();
+    const bookmarkList = getBookmarksList(allBookmarkTree);
     container.innerHTML = setBookmarksTableHTML(bookmarkList);
 }
 
-let outViewWidth, inViewWidth, tdWidth;
-const container = document.querySelector('#container');
-
-
-const setupPopupSize = () => {
-    outViewWidth = window.innerWidth;
-    inViewWidth = window.visualViewport.width;
-    document.documentElement.style.setProperty('--outViewWidth', `${outViewWidth}px`);
-    document.documentElement.style.setProperty('--inViewWidth', `${inViewWidth}px`)
-}
-
-
+// --- event
 document.addEventListener('DOMContentLoaded', setupBookmarkListConvTabelElement);
-
 document.addEventListener('readystatechange', () => (document.readyState === 'complete') ? LightTableFilter.init() : null);
-window.addEventListener('resize', setupPopupSize);
+
+
