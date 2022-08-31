@@ -1,14 +1,15 @@
 'use strict';
 
 // --- favicon util
+const faviconUrl = (url) =>
+  `https://www.google.com/s2/favicons?domain=${urlParse(url)}`;
+
 function urlParse(urlstr) {
   const urlBase = new URL(urlstr);
   const origin = urlBase.origin;
   const [, x, y, ..._] = urlBase.pathname.split('/'); // todo: Google 関係のfavicon 取得のため、詳細情報を切り捨て
   return [origin, x, y].join('/');
 }
-const faviconUrl = (url) =>
-  `https://www.google.com/s2/favicons?domain=${urlParse(url)}`;
 
 // --- Chrome Extensions func
 function getBookmarksList(bookmarkTreeNodes) {
@@ -21,7 +22,9 @@ function getBookmarksList(bookmarkTreeNodes) {
     });
   };
   setBookmarkNodes(bookmarkTreeNodes);
-  rawbookmarks.sort((x, y) => (x.dateAdded > y.dateAdded ? -1 : 1)); // todo: 登録日ソート
+  // todo: 登録日ソート
+  rawbookmarks.sort((x, y) => (x.dateAdded > y.dateAdded ? -1 : 1));
+
   const bookmarks = rawbookmarks.map((node) => {
     return {
       favicon: faviconUrl(node.url),
@@ -32,40 +35,40 @@ function getBookmarksList(bookmarkTreeNodes) {
   return bookmarks;
 }
 
-// --- search func
-// http://kachibito.net/snippets/light-javascript-table-filter
-const LightTableFilter = ((array) => {
-  let _input;
-  function _onInputEvent(e) {
-    _input = e.target;
-    let tables = document.getElementsByClassName(
-      _input.getAttribute('data-table')
-    );
-    array.forEach.call(tables, (table) => {
-      array.forEach.call(table.tBodies, (tbody) => {
-        array.forEach.call(tbody.rows, _filter);
-      });
+function inputTrigger(event) {
+  const target = event.target;
+  const searchStr = target.value.toLowerCase();
+  const tables = document.getElementsByClassName(
+    target.getAttribute('data-table')
+  );
+  Array.prototype.forEach.call(tables, (table) => {
+    Array.prototype.forEach.call(table.tBodies, (tbody) => {
+      Array.prototype.forEach.call(tbody.rows, _filter);
     });
-  }
+  });
   function _filter(row) {
-    let text = row.textContent.toLowerCase();
-    let val = _input.value.toLowerCase();
-    row.style.display = text.indexOf(val) === -1 ? 'none' : 'table-row';
+    const text = row.textContent.toLowerCase();
+    row.style.display = text.indexOf(searchStr) === -1 ? 'none' : 'table-row';
   }
-  return {
-    init: function () {
-      document.querySelector('.light-table-filter').oninput = _onInputEvent;
-    },
-  };
-})(new Array());
+}
 
 // --- DOM
+function createInputSearch() {
+  const element = document.createElement('input');
+  element.type = 'search';
+  element.id = 'light-table-filter';
+  element.setAttribute('data-table', 'order-table');
+  element.placeholder =
+    '🤓 ブックマークを検索      起動：[⌘]+[^]+[Space]    選択[Tab](+[Shift])';
+  element.autofocus = true;
+  return element;
+}
+
+// xxx: 汚いすぎるから書き換える
 function setBookmarksTableHTML(bookmarks) {
   let insertHtml = '';
-  const inputSearch =
-    '<input type="search" class="light-table-filter" data-table="order-table" placeholder="🤓 ブックマーク検索"  autofocus />';
   const tableHead = '<table class="order-table"><tbody>';
-  insertHtml += inputSearch + tableHead;
+  insertHtml += tableHead;
   for (const bm of bookmarks) {
     insertHtml += `
         <tr>
@@ -84,18 +87,16 @@ function setBookmarksTableHTML(bookmarks) {
   return insertHtml;
 }
 
-const container = document.querySelector('#container');
 async function setupBookmarkListConvTabelElement() {
-  const allBookmarkTree = await chrome.bookmarks.getTree();
-  const bookmarkList = getBookmarksList(allBookmarkTree);
+  const all_bookmark_tree = await chrome.bookmarks.getTree();
+  const bookmarkList = getBookmarksList(all_bookmark_tree);
   container.innerHTML = setBookmarksTableHTML(bookmarkList);
+  container.insertAdjacentElement('afterbegin', searchBox);
 }
 
-// --- event
-document.addEventListener(
-  'DOMContentLoaded',
-  setupBookmarkListConvTabelElement
-);
-document.addEventListener('readystatechange', () =>
-  document.readyState === 'complete' ? LightTableFilter.init() : null
-);
+/* main */
+const searchBox = createInputSearch();
+const container = document.querySelector('#container');
+setupBookmarkListConvTabelElement();
+
+searchBox.addEventListener('input', inputTrigger);
