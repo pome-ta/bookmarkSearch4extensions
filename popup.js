@@ -25,31 +25,29 @@ function getBookmarksList(bookmarkTreeNodes) {
   // todo: 登録日ソート
   rawbookmarks.sort((x, y) => (x.dateAdded > y.dateAdded ? -1 : 1));
 
-  const bookmarks = rawbookmarks.map((node) => {
-    return {
-      favicon: faviconUrl(node.url),
-      title: node.title || node.url,
-      url: node.url,
-    };
-  });
+  const bookmarks = rawbookmarks.map((node) => ({
+    favicon: faviconUrl(node.url),
+    title: node.title || node.url,
+    url: node.url,
+  }));
   return bookmarks;
 }
 
 function inputTrigger(event) {
   const target = event.target;
   const searchStr = target.value.toLowerCase();
+  const searchFilter = (row) => {
+    const text = row.textContent.toLowerCase();
+    row.style.display = ~text.indexOf(searchStr) ? 'table-row' : 'none';
+  };
   const tables = document.getElementsByClassName(
     target.getAttribute('data-table')
   );
   Array.prototype.forEach.call(tables, (table) => {
     Array.prototype.forEach.call(table.tBodies, (tbody) => {
-      Array.prototype.forEach.call(tbody.rows, _filter);
+      Array.prototype.forEach.call(tbody.rows, searchFilter);
     });
   });
-  function _filter(row) {
-    const text = row.textContent.toLowerCase();
-    row.style.display = text.indexOf(searchStr) === -1 ? 'none' : 'table-row';
-  }
 }
 
 // --- DOM
@@ -95,8 +93,7 @@ async function setupBookmarkListConvTabelElement() {
 }
 
 /* main */
-const searchBox = createInputSearch();
-const container = document.querySelector('#container');
 setupBookmarkListConvTabelElement();
-
+const container = document.querySelector('#container');
+const searchBox = createInputSearch();
 searchBox.addEventListener('input', inputTrigger);
